@@ -19,6 +19,7 @@ const finnhubRoutes = require('./routes/finnhub');
 const yfinanceRoutes = require('./routes/yfinance');
 const akshareRoutes = require('./routes/akshare');
 const trendradarRoutes = require('./routes/trendradar');
+const alphavantageRoutes = require('./routes/alphavantage');
 
 // API Routes
 app.use('/api/sec-edgar', secEdgarRoutes);
@@ -26,6 +27,7 @@ app.use('/api/finnhub', finnhubRoutes);
 app.use('/api/yfinance', yfinanceRoutes);
 app.use('/api/akshare', akshareRoutes);
 app.use('/api/trendradar', trendradarRoutes);
+app.use('/api/alphavantage', alphavantageRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

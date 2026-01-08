@@ -8,6 +8,7 @@ import SecEdgarTab from './components/SecEdgarTab';
 import FinnhubTab from './components/FinnhubTab';
 import YFinanceTab from './components/YFinanceTab';
 import TrendRadarTab from './components/TrendRadarTab';
+import AlphaVantageTab from './components/AlphaVantageTab';
 import OverviewTab from './components/OverviewTab';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
             <Tab>📈 Finnhub</Tab>
             <Tab>💹 Yahoo Finance</Tab>
             <Tab>📰 TrendRadar</Tab>
+            <Tab>📊 Alpha Vantage</Tab>
           </TabList>
 
           <TabPanel>
@@ -59,6 +61,10 @@ function App() {
 
           <TabPanel>
             <TrendRadarTab />
+          </TabPanel>
+
+          <TabPanel>
+            <AlphaVantageTab />
           </TabPanel>
         </Tabs>
       </main>
