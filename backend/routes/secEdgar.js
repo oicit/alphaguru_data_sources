@@ -54,7 +54,7 @@ router.post('/filings', async (req, res) => {
   }
 });
 
-// Get specific filing document
+// Download specific filing document
 router.post('/filing-document', async (req, res) => {
   try {
     const { documentUrl } = req.body;
@@ -66,18 +66,87 @@ router.post('/filing-document', async (req, res) => {
     const response = await axios.get(documentUrl, {
       headers: {
         'User-Agent': process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com'
-      }
+      },
+      responseType: 'text'
     });
 
     res.json({
       success: true,
-      content: response.data
+      content: response.data,
+      url: documentUrl
     });
 
   } catch (error) {
     console.error('SEC Document Fetch Error:', error.message);
     res.status(500).json({
       error: 'Failed to fetch SEC document',
+      message: error.message
+    });
+  }
+});
+
+// Download multiple filing documents
+router.post('/download-filings', async (req, res) => {
+  try {
+    const { filings } = req.body;
+
+    if (!filings || !Array.isArray(filings) || filings.length === 0) {
+      return res.status(400).json({ error: 'Filings array is required' });
+    }
+
+    const downloadedFilings = [];
+    const userAgent = process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com';
+
+    // SEC EDGAR rate limit: 10 requests per second
+    // We'll add a small delay between requests
+    for (let i = 0; i < filings.length; i++) {
+      const filing = filings[i];
+
+      try {
+        // Add delay to respect rate limits (100ms = 10 requests/second max)
+        if (i > 0) {
+          await new Promise(resolve => setTimeout(resolve, 150));
+        }
+
+        const response = await axios.get(filing.link, {
+          headers: { 'User-Agent': userAgent },
+          responseType: 'text',
+          timeout: 10000
+        });
+
+        downloadedFilings.push({
+          title: filing.title,
+          filingType: filing.filingType,
+          filingDate: filing.filingDate,
+          accessionNumber: filing.accessionNumber,
+          content: response.data,
+          filename: `${filing.accessionNumber.replace(/\//g, '_')}_${filing.filingType}.html`,
+          success: true
+        });
+
+      } catch (error) {
+        console.error(`Failed to download filing ${filing.accessionNumber}:`, error.message);
+        downloadedFilings.push({
+          title: filing.title,
+          filingType: filing.filingType,
+          accessionNumber: filing.accessionNumber,
+          error: error.message,
+          success: false
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      downloaded: downloadedFilings.filter(f => f.success).length,
+      failed: downloadedFilings.filter(f => !f.success).length,
+      filings: downloadedFilings
+    });
+
+  } catch (error) {
+    console.error('SEC Bulk Download Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to download SEC filings',
       message: error.message
     });
   }
