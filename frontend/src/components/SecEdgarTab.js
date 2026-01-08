@@ -44,7 +44,7 @@ function SecEdgarTab() {
     setError(null);
 
     try {
-      setDownloadProgress(`Downloading ${filings.filings.length} files from SEC EDGAR...`);
+      setDownloadProgress(`Downloading ${filings.filings.length} actual filing document(s) from SEC EDGAR...`);
 
       const response = await axios.post('/api/sec-edgar/download-filings', {
         filings: filings.filings
@@ -55,14 +55,14 @@ function SecEdgarTab() {
       if (response.data.success) {
         const downloadedFilings = response.data.filings.filter(f => f.success);
 
-        setDownloadProgress(`Downloaded ${downloadedFilings.length} files. Saving to your computer...`);
+        setDownloadProgress(`Downloaded ${downloadedFilings.length} document(s). Saving to your computer...`);
 
         // Download each file to user's computer
         for (let i = 0; i < downloadedFilings.length; i++) {
           const filing = downloadedFilings[i];
 
-          // Create a blob from the content
-          const blob = new Blob([filing.content], { type: 'text/html' });
+          // Create a blob from the content with proper file type
+          const blob = new Blob([filing.content], { type: filing.fileType || 'text/html' });
           const url = URL.createObjectURL(blob);
 
           // Create a temporary link and trigger download
@@ -83,7 +83,7 @@ function SecEdgarTab() {
           }
         }
 
-        setDownloadProgress(`✅ Successfully downloaded ${downloadedFilings.length} files!`);
+        setDownloadProgress(`✅ Successfully downloaded ${downloadedFilings.length} filing document(s)!`);
 
         if (response.data.failed > 0) {
           setError(`Note: ${response.data.failed} file(s) failed to download. Check browser console for details.`);
@@ -230,8 +230,8 @@ function SecEdgarTab() {
             border: '1px solid #bae6fd'
           }}>
             <p style={{ margin: 0, color: '#0c4a6e', fontSize: '0.95rem' }}>
-              <strong>💡 Tip:</strong> Click "Download All Files" to automatically download all {filings.count} filing document(s)
-              to your Downloads folder. Files will be saved as HTML documents.
+              <strong>💡 Tip:</strong> Click "Download All Files" to automatically download the actual filing documents
+              (10-K, 10-Q, etc.) to your Downloads folder. Each file contains the complete SEC filing content as filed by the company.
             </p>
           </div>
 
@@ -254,7 +254,7 @@ function SecEdgarTab() {
       <div className="demo-section" style={{ marginTop: '2rem' }}>
         <h3>📚 About SEC EDGAR</h3>
         <p style={{ color: '#718096', lineHeight: '1.6' }}>
-          The SEC's EDGAR database provides free public access to corporate information, including:
+          This tool uses SEC's official JSON API at data.sec.gov to fetch and download actual filing documents:
         </p>
         <ul style={{ color: '#718096', lineHeight: '1.8', marginTop: '0.5rem' }}>
           <li><strong>10-K:</strong> Annual reports with comprehensive company information</li>
@@ -265,6 +265,10 @@ function SecEdgarTab() {
           <li><strong>13F:</strong> Institutional investment manager holdings</li>
         </ul>
         <p style={{ color: '#718096', lineHeight: '1.6', marginTop: '1rem' }}>
+          <strong>Data Source:</strong> Documents are downloaded directly from SEC.gov's Archives,
+          containing the same content filed by companies with the SEC.
+        </p>
+        <p style={{ color: '#718096', lineHeight: '1.6', marginTop: '0.5rem' }}>
           <strong>Rate Limits:</strong> SEC EDGAR allows maximum 10 requests per second.
           The download process automatically respects these limits.
         </p>

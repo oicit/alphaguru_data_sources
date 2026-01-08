@@ -4,10 +4,54 @@ const axios = require('axios');
 
 /**
  * SEC EDGAR Routes
- * Provides endpoints for fetching SEC filings
+ * Uses SEC's official JSON API at data.sec.gov to fetch and download actual filing documents
  */
 
-// Get company filings list
+// Cache for ticker to CIK mapping
+let tickerToCikCache = null;
+
+// Get ticker to CIK mapping
+async function getTickerToCikMapping(userAgent) {
+  if (tickerToCikCache) {
+    return tickerToCikCache;
+  }
+
+  try {
+    const response = await axios.get(
+      'https://www.sec.gov/files/company_tickers_exchange.json',
+      {
+        headers: {
+          'User-Agent': userAgent,
+          'Accept-Encoding': 'gzip, deflate',
+          'Host': 'www.sec.gov'
+        }
+      }
+    );
+
+    // Convert to map: ticker -> CIK
+    const mapping = {};
+    const data = response.data;
+
+    if (data.fields && data.data) {
+      const cikIdx = data.fields.indexOf('cik');
+      const tickerIdx = data.fields.indexOf('ticker');
+
+      data.data.forEach(row => {
+        const ticker = row[tickerIdx];
+        const cik = String(row[cikIdx]).padStart(10, '0');
+        mapping[ticker.toUpperCase()] = cik;
+      });
+    }
+
+    tickerToCikCache = mapping;
+    return mapping;
+  } catch (error) {
+    console.error('Error fetching ticker to CIK mapping:', error.message);
+    return {};
+  }
+}
+
+// Get company filings list using SEC's JSON API
 router.post('/filings', async (req, res) => {
   try {
     const { ticker, filingType, limit = 10 } = req.body;
@@ -16,30 +60,80 @@ router.post('/filings', async (req, res) => {
       return res.status(400).json({ error: 'Ticker symbol is required' });
     }
 
-    // First, get the CIK for the ticker
-    const cikResponse = await axios.get(
-      `https://www.sec.gov/cgi-bin/browse-edgar`, {
-        params: {
-          action: 'getcompany',
-          ticker: ticker,
-          type: filingType || '',
-          dateb: '',
-          owner: 'exclude',
-          count: limit,
-          output: 'atom'
-        },
-        headers: {
-          'User-Agent': process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com'
-        }
-      }
-    );
+    const userAgent = process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com';
 
-    // Parse the response and extract filing information
-    const filings = parseSecEdgarAtomFeed(cikResponse.data);
+    // Get CIK for ticker
+    const tickerMap = await getTickerToCikMapping(userAgent);
+    const cik = tickerMap[ticker.toUpperCase()];
+
+    if (!cik) {
+      return res.status(404).json({
+        error: 'Ticker not found',
+        message: `Could not find CIK for ticker ${ticker}`
+      });
+    }
+
+    // Fetch submissions data from SEC's JSON API
+    const submissionsUrl = `https://data.sec.gov/submissions/CIK${cik}.json`;
+    const response = await axios.get(submissionsUrl, {
+      headers: {
+        'User-Agent': userAgent,
+        'Accept-Encoding': 'gzip, deflate',
+        'Host': 'data.sec.gov'
+      }
+    });
+
+    const submissionsData = response.data;
+    const recentFilings = submissionsData.filings.recent;
+
+    // Extract filing information
+    const filings = [];
+    const accessionNumbers = recentFilings.accessionNumber;
+    const forms = recentFilings.form;
+    const filingDates = recentFilings.filingDate;
+    const primaryDocuments = recentFilings.primaryDocument;
+    const reportDates = recentFilings.reportDate || [];
+
+    for (let i = 0; i < accessionNumbers.length && filings.length < limit; i++) {
+      const form = forms[i];
+
+      // Filter by filing type if specified
+      if (filingType && form !== filingType) {
+        continue;
+      }
+
+      const accNum = accessionNumbers[i];
+      const accNumNoDash = accNum.replace(/-/g, '');
+      const cikNoLeadingZeros = cik.replace(/^0+/, '');
+      const primaryDoc = primaryDocuments[i];
+
+      // Build URLs for downloading documents
+      const fullSubmissionUrl = `https://www.sec.gov/Archives/edgar/data/${cikNoLeadingZeros}/${accNumNoDash}/${accNum}.txt`;
+      const primaryDocUrl = primaryDoc ?
+        `https://www.sec.gov/Archives/edgar/data/${cikNoLeadingZeros}/${accNumNoDash}/${primaryDoc}` :
+        null;
+
+      filings.push({
+        title: `${submissionsData.name} - ${form}`,
+        filingType: form,
+        filingDate: filingDates[i],
+        reportDate: reportDates[i] || filingDates[i],
+        accessionNumber: accNum,
+        companyName: submissionsData.name,
+        cik: cik,
+        // URLs for downloading
+        fullSubmissionUrl: fullSubmissionUrl,
+        primaryDocUrl: primaryDocUrl,
+        // Legacy field for compatibility
+        link: primaryDocUrl || fullSubmissionUrl
+      });
+    }
 
     res.json({
       success: true,
       ticker: ticker,
+      cik: cik,
+      companyName: submissionsData.name,
       filingType: filingType || 'all',
       count: filings.length,
       filings: filings
@@ -54,38 +148,7 @@ router.post('/filings', async (req, res) => {
   }
 });
 
-// Download specific filing document
-router.post('/filing-document', async (req, res) => {
-  try {
-    const { documentUrl } = req.body;
-
-    if (!documentUrl) {
-      return res.status(400).json({ error: 'Document URL is required' });
-    }
-
-    const response = await axios.get(documentUrl, {
-      headers: {
-        'User-Agent': process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com'
-      },
-      responseType: 'text'
-    });
-
-    res.json({
-      success: true,
-      content: response.data,
-      url: documentUrl
-    });
-
-  } catch (error) {
-    console.error('SEC Document Fetch Error:', error.message);
-    res.status(500).json({
-      error: 'Failed to fetch SEC document',
-      message: error.message
-    });
-  }
-});
-
-// Download multiple filing documents
+// Download multiple filing documents (actual document content)
 router.post('/download-filings', async (req, res) => {
   try {
     const { filings } = req.body;
@@ -103,24 +166,50 @@ router.post('/download-filings', async (req, res) => {
       const filing = filings[i];
 
       try {
-        // Add delay to respect rate limits (100ms = 10 requests/second max)
+        // Add delay to respect rate limits (150ms = ~6-7 requests/second to be safe)
         if (i > 0) {
           await new Promise(resolve => setTimeout(resolve, 150));
         }
 
-        const response = await axios.get(filing.link, {
-          headers: { 'User-Agent': userAgent },
+        // Download the primary document (HTML) if available, otherwise full submission
+        const downloadUrl = filing.primaryDocUrl || filing.fullSubmissionUrl;
+
+        if (!downloadUrl) {
+          downloadedFilings.push({
+            title: filing.title,
+            filingType: filing.filingType,
+            accessionNumber: filing.accessionNumber,
+            error: 'No download URL available',
+            success: false
+          });
+          continue;
+        }
+
+        const response = await axios.get(downloadUrl, {
+          headers: {
+            'User-Agent': userAgent,
+            'Accept-Encoding': 'gzip, deflate',
+            'Host': 'www.sec.gov'
+          },
           responseType: 'text',
-          timeout: 10000
+          timeout: 15000
         });
+
+        // Determine file extension
+        const isPrimaryDoc = downloadUrl === filing.primaryDocUrl;
+        const fileExt = isPrimaryDoc ?
+          (filing.primaryDocUrl.endsWith('.htm') || filing.primaryDocUrl.endsWith('.html') ? '.html' : '.txt') :
+          '.txt';
 
         downloadedFilings.push({
           title: filing.title,
           filingType: filing.filingType,
           filingDate: filing.filingDate,
           accessionNumber: filing.accessionNumber,
+          companyName: filing.companyName,
           content: response.data,
-          filename: `${filing.accessionNumber.replace(/\//g, '_')}_${filing.filingType}.html`,
+          filename: `${filing.companyName.replace(/[^a-z0-9]/gi, '_')}_${filing.accessionNumber.replace(/\//g, '_')}_${filing.filingType.replace(/\s+/g, '_')}${fileExt}`,
+          fileType: fileExt === '.html' ? 'text/html' : 'text/plain',
           success: true
         });
 
@@ -156,29 +245,52 @@ router.post('/download-filings', async (req, res) => {
 router.get('/company/:identifier', async (req, res) => {
   try {
     const { identifier } = req.params;
+    const userAgent = process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com';
 
-    const response = await axios.get(
-      `https://www.sec.gov/cgi-bin/browse-edgar`, {
-        params: {
-          action: 'getcompany',
-          CIK: identifier,
-          type: '',
-          dateb: '',
-          owner: 'exclude',
-          count: 1,
-          output: 'atom'
-        },
-        headers: {
-          'User-Agent': process.env.SEC_USER_AGENT || 'DataSourcesDashboard contact@example.com'
-        }
+    // Check if identifier is a ticker or CIK
+    let cik = identifier;
+    if (!/^\d+$/.test(identifier)) {
+      // It's a ticker, convert to CIK
+      const tickerMap = await getTickerToCikMapping(userAgent);
+      cik = tickerMap[identifier.toUpperCase()];
+
+      if (!cik) {
+        return res.status(404).json({
+          error: 'Ticker not found',
+          message: `Could not find CIK for ticker ${identifier}`
+        });
       }
-    );
+    } else {
+      // Pad CIK to 10 digits
+      cik = cik.padStart(10, '0');
+    }
 
-    const companyInfo = parseCompanyInfo(response.data);
+    const submissionsUrl = `https://data.sec.gov/submissions/CIK${cik}.json`;
+    const response = await axios.get(submissionsUrl, {
+      headers: {
+        'User-Agent': userAgent,
+        'Accept-Encoding': 'gzip, deflate',
+        'Host': 'data.sec.gov'
+      }
+    });
+
+    const data = response.data;
 
     res.json({
       success: true,
-      company: companyInfo
+      company: {
+        cik: cik,
+        name: data.name,
+        tickers: data.tickers || [],
+        exchanges: data.exchanges || [],
+        sic: data.sic,
+        sicDescription: data.sicDescription,
+        ein: data.ein,
+        stateOfIncorporation: data.stateOfIncorporation,
+        fiscalYearEnd: data.fiscalYearEnd,
+        category: data.category,
+        website: data.website
+      }
     });
 
   } catch (error) {
@@ -189,54 +301,5 @@ router.get('/company/:identifier', async (req, res) => {
     });
   }
 });
-
-// Helper function to parse SEC EDGAR ATOM feed
-function parseSecEdgarAtomFeed(atomData) {
-  // Simple parsing - in production, use a proper XML parser like 'xml2js'
-  const filings = [];
-
-  // Extract entry tags
-  const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
-  let match;
-
-  while ((match = entryRegex.exec(atomData)) !== null) {
-    const entry = match[1];
-
-    const filing = {
-      title: extractTag(entry, 'title'),
-      link: extractAttribute(entry, 'link', 'href'),
-      updated: extractTag(entry, 'updated'),
-      summary: extractTag(entry, 'summary'),
-      filingType: extractTag(entry, 'filing-type'),
-      filingDate: extractTag(entry, 'filing-date'),
-      accessionNumber: extractTag(entry, 'accession-number')
-    };
-
-    filings.push(filing);
-  }
-
-  return filings;
-}
-
-function parseCompanyInfo(atomData) {
-  return {
-    name: extractTag(atomData, 'company-name'),
-    cik: extractTag(atomData, 'cik'),
-    sic: extractTag(atomData, 'assigned-sic'),
-    fiscalYearEnd: extractTag(atomData, 'fiscal-year-end')
-  };
-}
-
-function extractTag(xml, tagName) {
-  const regex = new RegExp(`<${tagName}>(.*?)<\/${tagName}>`, 'i');
-  const match = xml.match(regex);
-  return match ? match[1] : '';
-}
-
-function extractAttribute(xml, tagName, attribute) {
-  const regex = new RegExp(`<${tagName}[^>]*${attribute}="([^"]*)"`, 'i');
-  const match = xml.match(regex);
-  return match ? match[1] : '';
-}
 
 module.exports = router;
