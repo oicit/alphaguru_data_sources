@@ -301,4 +301,590 @@ router.post('/market-status', async (req, res) => {
   }
 });
 
+// Intraday Stock Data
+router.post('/stock-intraday', async (req, res) => {
+  try {
+    const { symbol, interval, apikey } = req.body;
+
+    if (!symbol || !interval || !apikey) {
+      return res.status(400).json({ error: 'Symbol, interval, and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'TIME_SERIES_INTRADAY',
+        symbol: symbol,
+        interval: interval,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Intraday Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch intraday data',
+      message: error.message
+    });
+  }
+});
+
+// Daily Adjusted Stock Data
+router.post('/stock-daily-adjusted', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'TIME_SERIES_DAILY_ADJUSTED',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Daily Adjusted Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch daily adjusted data',
+      message: error.message
+    });
+  }
+});
+
+// Weekly/Monthly Adjusted Stock Data
+router.post('/stock-adjusted', async (req, res) => {
+  try {
+    const { symbol, interval, apikey } = req.body;
+
+    if (!symbol || !interval || !apikey) {
+      return res.status(400).json({ error: 'Symbol, interval, and API key are required' });
+    }
+
+    const functionMap = {
+      'weekly': 'TIME_SERIES_WEEKLY_ADJUSTED',
+      'monthly': 'TIME_SERIES_MONTHLY_ADJUSTED'
+    };
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: functionMap[interval],
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Adjusted Data Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch adjusted data',
+      message: error.message
+    });
+  }
+});
+
+// Company Overview (Fundamental Data)
+router.post('/company-overview', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'OVERVIEW',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Company Overview Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch company overview',
+      message: error.message
+    });
+  }
+});
+
+// Income Statement
+router.post('/income-statement', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'INCOME_STATEMENT',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Income Statement Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch income statement',
+      message: error.message
+    });
+  }
+});
+
+// Balance Sheet
+router.post('/balance-sheet', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'BALANCE_SHEET',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Balance Sheet Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch balance sheet',
+      message: error.message
+    });
+  }
+});
+
+// Cash Flow
+router.post('/cash-flow', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'CASH_FLOW',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Cash Flow Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch cash flow',
+      message: error.message
+    });
+  }
+});
+
+// Earnings
+router.post('/earnings', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'EARNINGS',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Earnings Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch earnings',
+      message: error.message
+    });
+  }
+});
+
+// Listing Status
+router.post('/listing-status', async (req, res) => {
+  try {
+    const { apikey } = req.body;
+
+    if (!apikey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'LISTING_STATUS',
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Listing Status Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch listing status',
+      message: error.message
+    });
+  }
+});
+
+// Earnings Calendar
+router.post('/earnings-calendar', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!apikey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const params = {
+      function: 'EARNINGS_CALENDAR',
+      apikey: apikey
+    };
+
+    if (symbol) params.symbol = symbol;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Earnings Calendar Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch earnings calendar',
+      message: error.message
+    });
+  }
+});
+
+// IPO Calendar
+router.post('/ipo-calendar', async (req, res) => {
+  try {
+    const { apikey } = req.body;
+
+    if (!apikey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'IPO_CALENDAR',
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage IPO Calendar Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch IPO calendar',
+      message: error.message
+    });
+  }
+});
+
+// News & Sentiments
+router.post('/news-sentiment', async (req, res) => {
+  try {
+    const { tickers, topics, apikey } = req.body;
+
+    if (!apikey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const params = {
+      function: 'NEWS_SENTIMENT',
+      apikey: apikey
+    };
+
+    if (tickers) params.tickers = tickers;
+    if (topics) params.topics = topics;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage News Sentiment Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch news sentiment',
+      message: error.message
+    });
+  }
+});
+
+// Top Gainers & Losers
+router.post('/top-gainers-losers', async (req, res) => {
+  try {
+    const { apikey } = req.body;
+
+    if (!apikey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'TOP_GAINERS_LOSERS',
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Top Gainers/Losers Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch top gainers/losers',
+      message: error.message
+    });
+  }
+});
+
+// Insider Transactions
+router.post('/insider-transactions', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'INSIDER_TRANSACTIONS',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Insider Transactions Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch insider transactions',
+      message: error.message
+    });
+  }
+});
+
+// Commodity Data
+router.post('/commodity', async (req, res) => {
+  try {
+    const { commodity, interval, apikey } = req.body;
+
+    if (!commodity || !apikey) {
+      return res.status(400).json({ error: 'Commodity and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: commodity,
+        interval: interval || 'monthly',
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Commodity Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch commodity data',
+      message: error.message
+    });
+  }
+});
+
+// ETF Profile
+router.post('/etf-profile', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'ETF_PROFILE',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage ETF Profile Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch ETF profile',
+      message: error.message
+    });
+  }
+});
+
+// Dividends
+router.post('/dividends', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'DIVIDENDS',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Dividends Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch dividends',
+      message: error.message
+    });
+  }
+});
+
+// Splits
+router.post('/splits', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'SPLITS',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Splits Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch splits',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
