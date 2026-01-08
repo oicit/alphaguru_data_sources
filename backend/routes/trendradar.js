@@ -4,17 +4,24 @@ const axios = require('axios');
 
 /**
  * TrendRadar Routes
- * Fetches trending news from multiple platforms via newsnow API
+ * Fetches trending news from multiple Chinese platforms via newsnow API
+ * API Documentation: https://github.com/ourongxing/newsnow
  */
 
-const NEWSNOW_BASE_URL = 'https://api.newsnow.busiyi.world';
+const NEWSNOW_BASE_URL = 'https://newsnow.busiyi.world/api/s';
 
 // Get trending news from a specific platform
 router.post('/platform-trends', async (req, res) => {
   try {
     const { platform = 'toutiao' } = req.body;
 
-    const response = await axios.get(`${NEWSNOW_BASE_URL}/news/${platform}`);
+    const response = await axios.get(NEWSNOW_BASE_URL, {
+      params: {
+        id: platform,
+        latest: ''  // Include latest parameter to get most recent data
+      },
+      timeout: 10000
+    });
 
     res.json({
       success: true,
@@ -26,7 +33,8 @@ router.post('/platform-trends', async (req, res) => {
     console.error('TrendRadar Platform Error:', error.message);
     res.status(500).json({
       error: 'Failed to fetch platform trends',
-      message: error.message
+      message: error.message,
+      platform: req.body.platform
     });
   }
 });
@@ -37,7 +45,13 @@ router.post('/multi-platform-trends', async (req, res) => {
     const { platforms = ['toutiao', 'baidu', 'zhihu'] } = req.body;
 
     const promises = platforms.map(platform =>
-      axios.get(`${NEWSNOW_BASE_URL}/news/${platform}`)
+      axios.get(NEWSNOW_BASE_URL, {
+        params: {
+          id: platform,
+          latest: ''
+        },
+        timeout: 10000
+      })
         .then(response => ({
           platform,
           success: true,
@@ -70,21 +84,22 @@ router.post('/multi-platform-trends', async (req, res) => {
 // Get available platforms list
 router.get('/platforms', (req, res) => {
   const platforms = [
-    { id: 'toutiao', name: '今日头条' },
-    { id: 'baidu', name: '百度热搜' },
-    { id: 'zhihu', name: '知乎' },
-    { id: 'weibo', name: '微博' },
-    { id: 'douyin', name: '抖音' },
-    { id: 'bilibili', name: 'Bilibili' },
-    { id: 'wallstreetcn-hot', name: '华尔街见闻' },
-    { id: 'cls-telegraph', name: '财联社' },
-    { id: 'thepaper', name: '澎湃新闻' },
-    { id: 'ifeng', name: '凤凰网' },
-    { id: 'tieba', name: '贴吧' }
+    { id: 'toutiao', name: '今日头条 (Toutiao)' },
+    { id: 'baidu', name: '百度热搜 (Baidu Hot Search)' },
+    { id: 'zhihu', name: '知乎 (Zhihu)' },
+    { id: 'weibo', name: '微博 (Weibo)' },
+    { id: 'douyin', name: '抖音 (Douyin)' },
+    { id: 'bilibili-hot-search', name: 'Bilibili 热搜' },
+    { id: 'wallstreetcn-hot', name: '华尔街见闻 (Wallstreet CN)' },
+    { id: 'cls-hot', name: '财联社 (CLS)' },
+    { id: 'thepaper', name: '澎湃新闻 (The Paper)' },
+    { id: 'ifeng', name: '凤凰网 (iFeng)' },
+    { id: 'tieba', name: '贴吧 (Tieba)' }
   ];
 
   res.json({
     success: true,
+    count: platforms.length,
     platforms: platforms
   });
 });
