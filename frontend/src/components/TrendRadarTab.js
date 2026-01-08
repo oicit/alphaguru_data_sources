@@ -62,16 +62,34 @@ function TrendRadarTab() {
   };
 
   const renderTrendItem = (item, index) => {
+    // newsnow API returns: { title, url, mobileUrl }
+    const url = item.mobileUrl || item.url;
     return (
       <div key={index} className="result-card">
-        <h4>{item.title || item.name}</h4>
-        {item.hot && <p><strong>🔥 热度:</strong> {item.hot}</p>}
-        {item.desc && <p style={{color: '#718096'}}>{item.desc}</p>}
-        {item.url && (
-          <a href={item.url} target="_blank" rel="noopener noreferrer">
-            阅读更多 →
-          </a>
-        )}
+        <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
+          <span style={{
+            minWidth: '1.5rem',
+            height: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: index < 3 ? '#f56565' : '#718096',
+            color: 'white',
+            borderRadius: '4px',
+            fontSize: '0.85rem',
+            fontWeight: 'bold'
+          }}>
+            {index + 1}
+          </span>
+          <div style={{ flex: 1 }}>
+            <h4 style={{ margin: '0 0 0.5rem 0' }}>{item.title}</h4>
+            {url && (
+              <a href={url} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.9rem' }}>
+                阅读更多 →
+              </a>
+            )}
+          </div>
+        </div>
       </div>
     );
   };
@@ -86,13 +104,14 @@ function TrendRadarTab() {
     }
 
     const data = platformResult.data;
-    if (!data || !data.data || data.data.length === 0) {
+    // The newsnow API returns { status: "success", items: [...] }
+    if (!data || !data.items || data.items.length === 0) {
       return <p>No trending data available for this platform</p>;
     }
 
     return (
       <div>
-        {data.data.slice(0, 10).map((item, index) => renderTrendItem(item, index))}
+        {data.items.slice(0, 10).map((item, index) => renderTrendItem(item, index))}
       </div>
     );
   };
