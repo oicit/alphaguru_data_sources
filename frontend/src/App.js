@@ -10,12 +10,18 @@ import YFinanceTab from './components/YFinanceTab';
 import TrendRadarTab from './components/TrendRadarTab';
 import AlphaVantageTab from './components/AlphaVantageTab';
 import FmpTab from './components/FmpTab';
+import RedditTab from './components/RedditTab';
+import TwitterTab from './components/TwitterTab';
+import YouTubeTab from './components/YouTubeTab';
+import HackerNewsGitHubTab from './components/HackerNewsGitHubTab';
 import OverviewTab from './components/OverviewTab';
 
 function App() {
   const [apiKeys, setApiKeys] = useState({
     finnhub: localStorage.getItem('finnhub_api_key') || '',
-    fmp: localStorage.getItem('fmp_api_key') || ''
+    fmp: localStorage.getItem('fmp_api_key') || '',
+    twitter: localStorage.getItem('twitter_api_key') || '',
+    youtube: localStorage.getItem('youtube_api_key') || ''
   });
 
   const updateApiKey = (service, key) => {
@@ -41,6 +47,10 @@ function App() {
             <Tab>📰 TrendRadar</Tab>
             <Tab>📊 Alpha Vantage</Tab>
             <Tab>💼 FMP</Tab>
+            <Tab>🔴 Reddit</Tab>
+            <Tab>🐦 X.com/Twitter</Tab>
+            <Tab>📺 YouTube</Tab>
+            <Tab>🔶 HN/GitHub</Tab>
           </TabList>
 
           <TabPanel>
@@ -75,6 +85,28 @@ function App() {
               apiKey={apiKeys.fmp}
               onApiKeyChange={(key) => updateApiKey('fmp', key)}
             />
+          </TabPanel>
+
+          <TabPanel>
+            <RedditTab />
+          </TabPanel>
+
+          <TabPanel>
+            <TwitterTab
+              apiKey={apiKeys.twitter}
+              onApiKeyChange={(key) => updateApiKey('twitter', key)}
+            />
+          </TabPanel>
+
+          <TabPanel>
+            <YouTubeTab
+              apiKey={apiKeys.youtube}
+              onApiKeyChange={(key) => updateApiKey('youtube', key)}
+            />
+          </TabPanel>
+
+          <TabPanel>
+            <HackerNewsGitHubTab />
           </TabPanel>
         </Tabs>
       </main>
