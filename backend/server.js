@@ -25,6 +25,7 @@ const redditRoutes = require('./routes/reddit');
 const twitterRoutes = require('./routes/twitter');
 const youtubeRoutes = require('./routes/youtube');
 const hnGithubRoutes = require('./routes/hackernews-github');
+const globalMarketsRoutes = require('./routes/globalmarkets');
 
 // API Routes
 app.use('/api/sec-edgar', secEdgarRoutes);
@@ -38,6 +39,7 @@ app.use('/api/reddit', redditRoutes);
 app.use('/api/twitter', twitterRoutes);
 app.use('/api/youtube', youtubeRoutes);
 app.use('/api/hn-github', hnGithubRoutes);
+app.use('/api/globalmarkets', globalMarketsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
