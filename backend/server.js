@@ -20,6 +20,7 @@ const yfinanceRoutes = require('./routes/yfinance');
 const akshareRoutes = require('./routes/akshare');
 const trendradarRoutes = require('./routes/trendradar');
 const alphavantageRoutes = require('./routes/alphavantage');
+const fmpRoutes = require('./routes/fmp');
 
 // API Routes
 app.use('/api/sec-edgar', secEdgarRoutes);
@@ -28,6 +29,7 @@ app.use('/api/yfinance', yfinanceRoutes);
 app.use('/api/akshare', akshareRoutes);
 app.use('/api/trendradar', trendradarRoutes);
 app.use('/api/alphavantage', alphavantageRoutes);
+app.use('/api/fmp', fmpRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

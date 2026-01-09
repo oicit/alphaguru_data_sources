@@ -273,4 +273,54 @@ router.post('/sentiment', async (req, res) => {
   }
 });
 
+// Get earnings calendar
+router.post('/earnings-calendar', async (req, res) => {
+  try {
+    const { from, to, symbol, international, apiKey } = req.body;
+
+    if (!from || !to) {
+      return res.status(400).json({ error: 'Start date (from) and end date (to) are required in YYYY-MM-DD format' });
+    }
+
+    const key = apiKey || process.env.FINNHUB_API_KEY;
+    if (!key) {
+      return res.status(400).json({ error: 'Finnhub API key is required' });
+    }
+
+    const params = {
+      from: from,
+      to: to,
+      token: key
+    };
+
+    if (symbol) {
+      params.symbol = symbol.toUpperCase();
+    }
+
+    if (international !== undefined) {
+      params.international = international;
+    }
+
+    const response = await axios.get(`${FINNHUB_BASE_URL}/calendar/earnings`, {
+      params: params
+    });
+
+    res.json({
+      success: true,
+      from: from,
+      to: to,
+      symbol: symbol ? symbol.toUpperCase() : 'all',
+      count: response.data.earningsCalendar ? response.data.earningsCalendar.length : 0,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Finnhub Earnings Calendar Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch earnings calendar',
+      message: error.response?.data?.error || error.message
+    });
+  }
+});
+
 module.exports = router;

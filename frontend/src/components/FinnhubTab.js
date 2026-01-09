@@ -9,12 +9,26 @@ function FinnhubTab({ apiKey, onApiKeyChange }) {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
 
+  // Earnings Calendar state
+  const [calendarSymbol, setCalendarSymbol] = useState('');
+  const [fromDate, setFromDate] = useState(() => {
+    const date = new Date();
+    return date.toISOString().split('T')[0];
+  });
+  const [toDate, setToDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    return date.toISOString().split('T')[0];
+  });
+  const [international, setInternational] = useState(false);
+
   const demos = [
     { value: 'quote', label: 'Stock Quote' },
     { value: 'profile', label: 'Company Profile' },
     { value: 'fundamentals', label: 'Company Fundamentals' },
     { value: 'news', label: 'Company News' },
     { value: 'earnings', label: 'Earnings Data' },
+    { value: 'earnings-calendar', label: 'Earnings Calendar' },
     { value: 'recommendations', label: 'Analyst Recommendations' },
     { value: 'sentiment', label: 'News Sentiment' }
   ];
@@ -48,6 +62,16 @@ function FinnhubTab({ apiKey, onApiKeyChange }) {
           break;
         case 'earnings':
           endpoint = '/api/finnhub/earnings';
+          break;
+        case 'earnings-calendar':
+          endpoint = '/api/finnhub/earnings-calendar';
+          requestData = {
+            from: fromDate,
+            to: toDate,
+            symbol: calendarSymbol || undefined,
+            international: international,
+            apiKey
+          };
           break;
         case 'recommendations':
           endpoint = '/api/finnhub/recommendations';
@@ -211,6 +235,48 @@ function FinnhubTab({ apiKey, onApiKeyChange }) {
           </div>
         );
 
+      case 'earnings-calendar':
+        if (!result.earningsCalendar || result.earningsCalendar.length === 0) {
+          return <p>No earnings found for the selected date range</p>;
+        }
+        return (
+          <div className="result-card">
+            <h4>Earnings Calendar ({result.earningsCalendar.length} companies)</h4>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Symbol</th>
+                  <th>Quarter</th>
+                  <th>EPS Estimate</th>
+                  <th>EPS Actual</th>
+                  <th>Revenue Estimate</th>
+                  <th>Revenue Actual</th>
+                  <th>Hour</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.earningsCalendar.map((earning, index) => (
+                  <tr key={index}>
+                    <td>{earning.date}</td>
+                    <td><strong>{earning.symbol}</strong></td>
+                    <td>{earning.year} Q{earning.quarter}</td>
+                    <td>${earning.epsEstimate?.toFixed(2) || 'N/A'}</td>
+                    <td style={{color: earning.epsActual !== null && earning.epsEstimate !== null && earning.epsActual >= earning.epsEstimate ? 'green' : 'inherit'}}>
+                      {earning.epsActual !== null ? `$${earning.epsActual.toFixed(2)}` : 'N/A'}
+                    </td>
+                    <td>{earning.revenueEstimate ? `$${(earning.revenueEstimate / 1000000).toFixed(2)}M` : 'N/A'}</td>
+                    <td style={{color: earning.revenueActual !== null && earning.revenueEstimate !== null && earning.revenueActual >= earning.revenueEstimate ? 'green' : 'inherit'}}>
+                      {earning.revenueActual ? `$${(earning.revenueActual / 1000000).toFixed(2)}M` : 'N/A'}
+                    </td>
+                    <td>{earning.hour || 'N/A'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
       default:
         return <pre>{JSON.stringify(result, null, 2)}</pre>;
     }
@@ -246,16 +312,6 @@ function FinnhubTab({ apiKey, onApiKeyChange }) {
 
         <div className="form-row">
           <div className="form-group">
-            <label>Stock Symbol</label>
-            <input
-              type="text"
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-              placeholder="e.g., AAPL"
-            />
-          </div>
-
-          <div className="form-group">
             <label>Demo Type</label>
             <select value={demoType} onChange={(e) => setDemoType(e.target.value)}>
               {demos.map(demo => (
@@ -265,8 +321,68 @@ function FinnhubTab({ apiKey, onApiKeyChange }) {
           </div>
         </div>
 
+        {demoType === 'earnings-calendar' ? (
+          <>
+            <div className="form-row">
+              <div className="form-group">
+                <label>From Date</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>To Date</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Symbol (Optional)</label>
+                <input
+                  type="text"
+                  value={calendarSymbol}
+                  onChange={(e) => setCalendarSymbol(e.target.value.toUpperCase())}
+                  placeholder="Leave empty for all stocks"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={international}
+                    onChange={(e) => setInternational(e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  Include International Stocks
+                </label>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="form-row">
+            <div className="form-group">
+              <label>Stock Symbol</label>
+              <input
+                type="text"
+                value={symbol}
+                onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                placeholder="e.g., AAPL"
+              />
+            </div>
+          </div>
+        )}
+
         <div className="button-group">
-          <button onClick={fetchData} disabled={loading || !symbol || !apiKey}>
+          <button onClick={fetchData} disabled={loading || (demoType !== 'earnings-calendar' && !symbol) || !apiKey}>
             {loading ? 'Fetching...' : 'Fetch Data'}
           </button>
         </div>

@@ -9,11 +9,13 @@ import FinnhubTab from './components/FinnhubTab';
 import YFinanceTab from './components/YFinanceTab';
 import TrendRadarTab from './components/TrendRadarTab';
 import AlphaVantageTab from './components/AlphaVantageTab';
+import FmpTab from './components/FmpTab';
 import OverviewTab from './components/OverviewTab';
 
 function App() {
   const [apiKeys, setApiKeys] = useState({
-    finnhub: localStorage.getItem('finnhub_api_key') || ''
+    finnhub: localStorage.getItem('finnhub_api_key') || '',
+    fmp: localStorage.getItem('fmp_api_key') || ''
   });
 
   const updateApiKey = (service, key) => {
@@ -38,6 +40,7 @@ function App() {
             <Tab>💹 Yahoo Finance</Tab>
             <Tab>📰 TrendRadar</Tab>
             <Tab>📊 Alpha Vantage</Tab>
+            <Tab>💼 FMP</Tab>
           </TabList>
 
           <TabPanel>
@@ -65,6 +68,13 @@ function App() {
 
           <TabPanel>
             <AlphaVantageTab />
+          </TabPanel>
+
+          <TabPanel>
+            <FmpTab
+              apiKey={apiKeys.fmp}
+              onApiKeyChange={(key) => updateApiKey('fmp', key)}
+            />
           </TabPanel>
         </Tabs>
       </main>

@@ -12,7 +12,7 @@ function OverviewTab() {
       name: 'Finnhub',
       description: 'Real-time market data, fundamentals, news',
       icon: '📈',
-      features: ['Stock quotes', 'Company fundamentals', 'News & sentiment', 'Analyst ratings']
+      features: ['Stock quotes', 'Company fundamentals', 'News & sentiment', 'Analyst ratings', 'Earnings calendar']
     },
     {
       name: 'Yahoo Finance',
@@ -25,6 +25,18 @@ function OverviewTab() {
       description: 'Trending news from 11+ platforms',
       icon: '📰',
       features: ['Multi-platform trends', 'Hot topics', 'News aggregation']
+    },
+    {
+      name: 'Alpha Vantage',
+      description: 'Comprehensive stock data, fundamentals, and indicators',
+      icon: '📊',
+      features: ['Intraday & daily prices', 'Financial statements', 'Technical indicators', 'News & sentiment', 'Earnings & IPO calendars']
+    },
+    {
+      name: 'FMP (Financial Modeling Prep)',
+      description: 'Professional-grade financial data (⚠️ Paid subscription required for most features)',
+      icon: '💼',
+      features: ['Financial statements', 'DCF valuations', 'Insider & senate trading', 'Market calendars', 'Note: Free tier very limited as of 2025']
     }
   ];
 
