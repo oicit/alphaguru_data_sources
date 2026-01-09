@@ -16,6 +16,7 @@ import YouTubeTab from './components/YouTubeTab';
 import HackerNewsGitHubTab from './components/HackerNewsGitHubTab';
 import GlobalMarketsTab from './components/GlobalMarketsTab';
 import AlphaguruArchetypeTab from './components/AlphaguruArchetypeTab';
+import DeepResearchAgentsTab from './components/DeepResearchAgentsTab';
 import OverviewTab from './components/OverviewTab';
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
             <Tab>🔶 HN/GitHub</Tab>
             <Tab>🌏 Global Markets</Tab>
             <Tab>🧬 Alphaguru Archetype</Tab>
+            <Tab>🤖 Deep Research AI</Tab>
           </TabList>
 
           <TabPanel>
@@ -119,6 +121,10 @@ function App() {
 
           <TabPanel>
             <AlphaguruArchetypeTab />
+          </TabPanel>
+
+          <TabPanel>
+            <DeepResearchAgentsTab />
           </TabPanel>
         </Tabs>
       </main>

@@ -27,6 +27,7 @@ const youtubeRoutes = require('./routes/youtube');
 const hnGithubRoutes = require('./routes/hackernews-github');
 const globalMarketsRoutes = require('./routes/globalmarkets');
 const archetypeRoutes = require('./routes/archetype');
+const deepresearchRoutes = require('./routes/deepresearch');
 
 // API Routes
 app.use('/api/sec-edgar', secEdgarRoutes);
@@ -42,6 +43,7 @@ app.use('/api/youtube', youtubeRoutes);
 app.use('/api/hn-github', hnGithubRoutes);
 app.use('/api/globalmarkets', globalMarketsRoutes);
 app.use('/api/archetype', archetypeRoutes);
+app.use('/api/deepresearch', deepresearchRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
