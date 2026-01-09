@@ -887,4 +887,384 @@ router.post('/splits', async (req, res) => {
   }
 });
 
+// Shares Outstanding
+router.post('/shares-outstanding', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'SHARES_OUTSTANDING',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Shares Outstanding Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch shares outstanding',
+      message: error.message
+    });
+  }
+});
+
+// Earnings Estimates
+router.post('/earnings-estimates', async (req, res) => {
+  try {
+    const { symbol, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'EARNINGS_ESTIMATES',
+        symbol: symbol,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Earnings Estimates Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch earnings estimates',
+      message: error.message
+    });
+  }
+});
+
+// Realtime Bulk Quotes
+router.post('/bulk-quotes', async (req, res) => {
+  try {
+    const { symbols, apikey } = req.body;
+
+    if (!symbols || !apikey) {
+      return res.status(400).json({ error: 'Symbols and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'REALTIME_BULK_QUOTES',
+        symbol: symbols,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Bulk Quotes Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch bulk quotes',
+      message: error.message
+    });
+  }
+});
+
+// Realtime Options
+router.post('/options-realtime', async (req, res) => {
+  try {
+    const { symbol, contract, require_greeks, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const params = {
+      function: 'REALTIME_OPTIONS',
+      symbol: symbol,
+      apikey: apikey
+    };
+
+    if (contract) params.contract = contract;
+    if (require_greeks) params.require_greeks = require_greeks;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Realtime Options Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch realtime options',
+      message: error.message
+    });
+  }
+});
+
+// Historical Options
+router.post('/options-historical', async (req, res) => {
+  try {
+    const { symbol, date, apikey } = req.body;
+
+    if (!symbol || !apikey) {
+      return res.status(400).json({ error: 'Symbol and API key are required' });
+    }
+
+    const params = {
+      function: 'HISTORICAL_OPTIONS',
+      symbol: symbol,
+      apikey: apikey
+    };
+
+    if (date) params.date = date;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Historical Options Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch historical options',
+      message: error.message
+    });
+  }
+});
+
+// Earnings Call Transcript
+router.post('/earnings-call-transcript', async (req, res) => {
+  try {
+    const { symbol, quarter, apikey } = req.body;
+
+    if (!symbol || !quarter || !apikey) {
+      return res.status(400).json({ error: 'Symbol, quarter, and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'EARNINGS_CALL_TRANSCRIPT',
+        symbol: symbol,
+        quarter: quarter,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Earnings Call Transcript Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch earnings call transcript',
+      message: error.message
+    });
+  }
+});
+
+// Analytics Fixed Window
+router.post('/analytics-fixed-window', async (req, res) => {
+  try {
+    const { symbols, range, interval, calculations, apikey } = req.body;
+
+    if (!symbols || !range || !interval || !apikey) {
+      return res.status(400).json({ error: 'Symbols, range, interval, and API key are required' });
+    }
+
+    const params = {
+      function: 'ANALYTICS_FIXED_WINDOW',
+      SYMBOLS: symbols,
+      RANGE: range,
+      INTERVAL: interval,
+      apikey: apikey
+    };
+
+    if (calculations) params.CALCULATIONS = calculations;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Analytics Fixed Window Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch analytics fixed window',
+      message: error.message
+    });
+  }
+});
+
+// Analytics Sliding Window
+router.post('/analytics-sliding-window', async (req, res) => {
+  try {
+    const { symbols, range, interval, window_size, calculations, apikey } = req.body;
+
+    if (!symbols || !range || !interval || !window_size || !apikey) {
+      return res.status(400).json({ error: 'Symbols, range, interval, window_size, and API key are required' });
+    }
+
+    const params = {
+      function: 'ANALYTICS_SLIDING_WINDOW',
+      SYMBOLS: symbols,
+      RANGE: range,
+      INTERVAL: interval,
+      WINDOW_SIZE: window_size,
+      apikey: apikey
+    };
+
+    if (calculations) params.CALCULATIONS = calculations;
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: params,
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Analytics Sliding Window Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch analytics sliding window',
+      message: error.message
+    });
+  }
+});
+
+// FX Intraday
+router.post('/forex-intraday', async (req, res) => {
+  try {
+    const { from_symbol, to_symbol, interval, apikey } = req.body;
+
+    if (!from_symbol || !to_symbol || !interval || !apikey) {
+      return res.status(400).json({ error: 'From symbol, to symbol, interval, and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'FX_INTRADAY',
+        from_symbol: from_symbol,
+        to_symbol: to_symbol,
+        interval: interval,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage FX Intraday Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch FX intraday data',
+      message: error.message
+    });
+  }
+});
+
+// Currency Exchange Rate
+router.post('/currency-exchange-rate', async (req, res) => {
+  try {
+    const { from_currency, to_currency, apikey } = req.body;
+
+    if (!from_currency || !to_currency || !apikey) {
+      return res.status(400).json({ error: 'From currency, to currency, and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'CURRENCY_EXCHANGE_RATE',
+        from_currency: from_currency,
+        to_currency: to_currency,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Currency Exchange Rate Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch currency exchange rate',
+      message: error.message
+    });
+  }
+});
+
+// Crypto Intraday
+router.post('/crypto-intraday', async (req, res) => {
+  try {
+    const { symbol, market, interval, apikey } = req.body;
+
+    if (!symbol || !market || !interval || !apikey) {
+      return res.status(400).json({ error: 'Symbol, market, interval, and API key are required' });
+    }
+
+    const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
+      params: {
+        function: 'CRYPTO_INTRADAY',
+        symbol: symbol,
+        market: market,
+        interval: interval,
+        apikey: apikey
+      },
+      timeout: 10000
+    });
+
+    res.json({
+      success: true,
+      data: response.data
+    });
+
+  } catch (error) {
+    console.error('Alpha Vantage Crypto Intraday Error:', error.message);
+    res.status(500).json({
+      error: 'Failed to fetch crypto intraday data',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
