@@ -15,6 +15,7 @@ import TwitterTab from './components/TwitterTab';
 import YouTubeTab from './components/YouTubeTab';
 import HackerNewsGitHubTab from './components/HackerNewsGitHubTab';
 import GlobalMarketsTab from './components/GlobalMarketsTab';
+import AlphaguruArchetypeTab from './components/AlphaguruArchetypeTab';
 import OverviewTab from './components/OverviewTab';
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
             <Tab>📺 YouTube</Tab>
             <Tab>🔶 HN/GitHub</Tab>
             <Tab>🌏 Global Markets</Tab>
+            <Tab>🧬 Alphaguru Archetype</Tab>
           </TabList>
 
           <TabPanel>
@@ -113,6 +115,10 @@ function App() {
 
           <TabPanel>
             <GlobalMarketsTab />
+          </TabPanel>
+
+          <TabPanel>
+            <AlphaguruArchetypeTab />
           </TabPanel>
         </Tabs>
       </main>
