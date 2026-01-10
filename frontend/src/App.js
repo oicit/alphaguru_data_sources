@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './styles/App.css';
+import './styles/DataSourceTab.css';
 
 // Import tab components
 import SecEdgarTab from './components/SecEdgarTab';
@@ -16,6 +17,7 @@ import GlobalMarketsTab from './components/GlobalMarketsTab';
 import AlphaguruArchetypeTab from './components/AlphaguruArchetypeTab';
 import DeepResearchAgentsTab from './components/DeepResearchAgentsTab';
 import OverviewTab from './components/OverviewTab';
+import CategoryOverview from './components/CategoryOverview';
 
 function App() {
   const [apiKeys, setApiKeys] = useState({
@@ -52,6 +54,7 @@ function App() {
       icon: '📊',
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       items: [
+        { id: 'traditional-overview', label: 'Overview', icon: '📋', component: 'CategoryOverview' },
         { id: 'sec-edgar', label: 'SEC EDGAR', icon: '📋', component: 'SecEdgarTab' },
         { id: 'finnhub', label: 'Finnhub', icon: '📈', component: 'FinnhubTab' },
         { id: 'yfinance', label: 'Yahoo Finance', icon: '💹', component: 'YFinanceTab' },
@@ -65,6 +68,7 @@ function App() {
       icon: '🌐',
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
       items: [
+        { id: 'alternative-overview', label: 'Overview', icon: '📋', component: 'CategoryOverview' },
         { id: 'twitter', label: 'X.com/Twitter', icon: '🐦', component: 'TwitterTab' },
         { id: 'reddit', label: 'Reddit', icon: '🔴', component: 'RedditTab' },
         { id: 'hn-github', label: 'HN/GitHub', icon: '🔶', component: 'HackerNewsGitHubTab' },
@@ -79,6 +83,7 @@ function App() {
       icon: '🤖',
       gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
       items: [
+        { id: 'ai-overview', label: 'Overview', icon: '📋', component: 'CategoryOverview' },
         { id: 'archetype', label: 'Alphaguru Archetype', icon: '🧬', component: 'AlphaguruArchetypeTab' },
         { id: 'deepresearch', label: 'Deep Research AI', icon: '🤖', component: 'DeepResearchAgentsTab' }
       ]
@@ -86,6 +91,17 @@ function App() {
   ];
 
   const renderActiveComponent = () => {
+    // Handle Category Overviews
+    if (activeView === 'traditional-overview') {
+      return <CategoryOverview category={menuStructure[0]} onNavigate={setActiveView} />;
+    }
+    if (activeView === 'alternative-overview') {
+      return <CategoryOverview category={menuStructure[1]} onNavigate={setActiveView} />;
+    }
+    if (activeView === 'ai-overview') {
+      return <CategoryOverview category={menuStructure[2]} onNavigate={setActiveView} />;
+    }
+
     const components = {
       'overview': <OverviewTab />,
       'sec-edgar': <SecEdgarTab />,
@@ -180,3 +196,4 @@ function App() {
 }
 
 export default App;
+
